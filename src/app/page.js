@@ -17,11 +17,9 @@ export default function Home() {
   const [showSummary, setShowSummary] = useState(false);
   const [lastGameResult, setLastGameResult] = useState("");
   const [showStatsMenu, setShowStatsMenu] = useState(false);
-
   const [bgMusicOn, setBgMusicOn] = useState(true);
   const [sfxOn, setSfxOn] = useState(true);
 
-  // Audio refs
   const bgMusicRef = useRef(null);
   const clickRef = useRef(null);
   const correctRef = useRef(null);
@@ -43,8 +41,8 @@ export default function Home() {
     const l = parseInt(localStorage.getItem("losses")) || 0;
     const c = parseInt(localStorage.getItem("currentStreak")) || 0;
     const b = parseInt(localStorage.getItem("bestStreak")) || 0;
-    const bgPref = localStorage.getItem("bgMusicOn") === "false" ? false : true;
-    const sfxPref = localStorage.getItem("sfxOn") === "false" ? false : true;
+    const bgPref = localStorage.getItem("bgMusicOn") !== "false";
+    const sfxPref = localStorage.getItem("sfxOn") !== "false";
 
     setWins(w);
     setLosses(l);
@@ -71,6 +69,7 @@ export default function Home() {
       setMessage("Min should be less than Max.");
       return;
     }
+
     const chances = Math.ceil(Math.log2(maxVal - minVal + 1));
     setRandomNumber(generateRandomNumber(minVal, maxVal));
     setGuess("");
@@ -118,7 +117,7 @@ export default function Home() {
         setCurrentStreak(0);
         localStorage.setItem("losses", newLosses.toString());
         localStorage.setItem("currentStreak", "0");
-        setMessage(`❌ ${userGuess} is incorrect! You've used all ${maxChances} chances. The number was ${randomNumber}.`);
+        setMessage(`❌ ${userGuess} is incorrect! The number was ${randomNumber}.`);
         setLastGameResult("loss");
         setRangeSet(false);
         setShowSummary(true);
@@ -144,11 +143,7 @@ export default function Home() {
     const newState = !bgMusicOn;
     setBgMusicOn(newState);
     localStorage.setItem("bgMusicOn", newState.toString());
-    if (!newState) {
-      bgMusicRef.current?.pause();
-    } else {
-      bgMusicRef.current?.play().catch(() => {});
-    }
+    newState ? bgMusicRef.current?.play().catch(() => {}) : bgMusicRef.current?.pause();
   };
 
   const toggleSfx = () => {
@@ -158,7 +153,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4 relative">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4 relative animated-bg">
       {/* Audio Elements */}
       <audio ref={bgMusicRef} src="/sounds/background.mp3" />
       <audio ref={clickRef} src="/sounds/click.mp3" />
@@ -167,84 +162,77 @@ export default function Home() {
       <audio ref={resetRef} src="/sounds/reset.mp3" />
       <audio ref={startRef} src="/sounds/start.mp3" />
 
-      {/* Menu Icon */}
+      {/* Stats Button */}
       <button
         onClick={() => setShowStatsMenu((prev) => !prev)}
-        className="absolute top-4 right-4 text-3xl text-white hover:text-yellow-400"
+        className="absolute top-4 right-4 text-3xl hover:text-yellow-400"
         title="Show Stats"
       >
         ☰
       </button>
 
-      {/* Stats Menu + Audio Toggles */}
+      {/* Stats Menu */}
       {showStatsMenu && (
         <div className="absolute top-16 right-4 bg-gray-800 border border-gray-700 rounded p-4 w-64 shadow-lg z-50">
           <h3 className="text-xl font-bold mb-2">📊 Your Stats</h3>
           <ul className="text-sm space-y-2 mb-4">
             <li>✅ Wins: {wins}</li>
             <li>❌ Losses: {losses}</li>
-            <li>🔥 Current Streak: {currentStreak}</li>
-            <li>🏆 Best Streak: {bestStreak}</li>
+            <li>🔥 Streak: {currentStreak}</li>
+            <li>🏆 Best: {bestStreak}</li>
           </ul>
           <hr className="border-gray-600 my-2" />
-          <div className="flex flex-col space-y-2 text-sm">
-            <label className="flex items-center justify-between">
-              🎵 Background Music
-              <input type="checkbox" checked={bgMusicOn} onChange={toggleBgMusic} />
-            </label>
-            <label className="flex items-center justify-between">
-              🔊 Sound Effects
-              <input type="checkbox" checked={sfxOn} onChange={toggleSfx} />
-            </label>
-          </div>
+          <label className="flex justify-between items-center text-sm">
+            🎵 Music <input type="checkbox" checked={bgMusicOn} onChange={toggleBgMusic} />
+          </label>
+          <label className="flex justify-between items-center text-sm mt-2">
+            🔊 SFX <input type="checkbox" checked={sfxOn} onChange={toggleSfx} />
+          </label>
           <button
             onClick={() => setShowStatsMenu(false)}
-            className="mt-4 bg-white text-gray-800 px-3 py-1 rounded hover:bg-gray-200"
+            className="mt-4 bg-white text-black px-3 py-1 rounded hover:bg-gray-200"
           >
             Close
           </button>
         </div>
       )}
 
-      <h1 className="text-3xl font-bold mb-6">🎯 Number Guessing Game</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">🎯 Number Guessing Game</h1>
 
-      {/* Game Input */}
-      <div className="flex gap-4 mb-4">
+      {/* Range Setup */}
+      <div className="flex flex-wrap justify-center gap-2 mb-4">
         <input type="number" placeholder="Min" className="text-white p-2 rounded bg-gray-800 w-24" value={min} onChange={(e) => setMin(e.target.value)} />
         <input type="number" placeholder="Max" className="text-white p-2 rounded bg-gray-800 w-24" value={max} onChange={(e) => setMax(e.target.value)} />
-        <button onClick={startGame} className="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition">Start Game</button>
-        <button onClick={resetGame} className="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-700 transition">Reset</button>
+        <button onClick={startGame} className="bg-green-600 px-4 py-2 rounded hover:bg-green-700">Start</button>
+        <button onClick={resetGame} className="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-700">Reset</button>
       </div>
 
-      {/* Guess Input */}
+      {/* Guessing Area */}
       {rangeSet && (
         <>
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
             <input
               type="number"
-              placeholder="Enter your guess"
-              className="text-white p-2 rounded w-64 bg-gray-800"
+              placeholder="Your guess"
+              className="text-white p-2 rounded bg-gray-800 w-64"
               value={guess}
               onChange={(e) => setGuess(e.target.value)}
             />
-            <div className="bg-gray-700 text-white px-3 py-2 rounded text-sm font-semibold">
-              Chances left: {maxChances - guessCount}
+            <div className="bg-gray-700 px-3 py-2 rounded text-sm font-semibold">
+              Left: {maxChances - guessCount}
             </div>
           </div>
-          <button
-            onClick={handleGuess}
-            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
+          <button onClick={handleGuess} className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
             Guess
           </button>
         </>
       )}
 
-      <p className="mt-6 text-xl text-center">{message}</p>
+      <p className="mt-6 text-lg text-center max-w-md">{message}</p>
 
-      {/* Summary Modal */}
+      {/* Result Summary */}
       {showSummary && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
           <div className="bg-gray-800 p-6 rounded text-center shadow-lg w-[90%] max-w-sm">
             <h2 className="text-2xl font-bold mb-2">
               {lastGameResult === "win" ? "🎉 You Won!" : "😢 You Lost"}
@@ -254,7 +242,7 @@ export default function Home() {
             </p>
             <button
               onClick={() => setShowSummary(false)}
-              className="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-200"
+              className="bg-white text-black px-4 py-2 rounded hover:bg-gray-200"
             >
               Close
             </button>
