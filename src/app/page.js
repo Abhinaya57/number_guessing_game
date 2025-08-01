@@ -86,12 +86,21 @@ export default function Home() {
 
   const handleGuess = () => {
     sfxOn && clickRef.current?.play();
-    const userGuess = parseInt(guess);
+
     if (!rangeSet) return;
+
+    // 🛑 NEW CHECK: No more chances
+    if (guessCount >= maxChances) {
+      setMessage("⚠️ No more chances left!");
+      return;
+    }
+
+    const userGuess = parseInt(guess);
     if (isNaN(userGuess)) {
       setMessage("Please enter a valid number!");
       return;
     }
+
     setGuessCount((prev) => prev + 1);
 
     if (userGuess === randomNumber) {
@@ -107,7 +116,6 @@ export default function Home() {
       localStorage.setItem("bestStreak", newBest.toString());
       setMessage(`🎉 ${userGuess} is correct! You guessed it in your ${guessCount + 1}${getOrdinal(guessCount + 1)} guess!`);
       setLastGameResult("win");
-      setRangeSet(false);
       setShowSummary(true);
     } else {
       sfxOn && wrongRef.current?.play();
@@ -119,7 +127,6 @@ export default function Home() {
         localStorage.setItem("currentStreak", "0");
         setMessage(`❌ ${userGuess} is incorrect! The number was ${randomNumber}.`);
         setLastGameResult("loss");
-        setRangeSet(false);
         setShowSummary(true);
       } else {
         setMessage(`${userGuess} is too ${userGuess < randomNumber ? "low" : "high"}! Try again. (${maxChances - (guessCount + 1)} left)`);
@@ -137,6 +144,7 @@ export default function Home() {
     setMaxChances(0);
     setMessage("");
     setRangeSet(false);
+    setShowSummary(false);
   };
 
   const toggleBgMusic = () => {
@@ -199,32 +207,53 @@ export default function Home() {
 
       <h1 className="text-3xl font-bold mb-6 text-center">🎯 Number Guessing Game</h1>
 
-      {/* Range Setup */}
-      <div className="flex flex-wrap justify-center gap-2 mb-4">
+      {/* Min/Max Inputs */}
+      <div className="flex gap-4 mb-2">
         <input type="number" placeholder="Min" className="text-white p-2 rounded bg-gray-800 w-24" value={min} onChange={(e) => setMin(e.target.value)} />
         <input type="number" placeholder="Max" className="text-white p-2 rounded bg-gray-800 w-24" value={max} onChange={(e) => setMax(e.target.value)} />
-        <button onClick={startGame} className="bg-green-600 px-4 py-2 rounded hover:bg-green-700">Start</button>
-        <button onClick={resetGame} className="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-700">Reset</button>
       </div>
 
-      {/* Guessing Area */}
+      {/* Start Game Button */}
+      {!rangeSet && (
+        <button
+          onClick={startGame}
+          className="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition mb-4"
+        >
+          Start Game
+        </button>
+      )}
+
+      {/* Guess Input Section */}
       {rangeSet && (
         <>
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
+          <div className="flex items-center gap-4 mb-2">
             <input
               type="number"
-              placeholder="Your guess"
-              className="text-white p-2 rounded bg-gray-800 w-64"
+              placeholder="Enter your guess"
+              className="text-white p-2 rounded w-64 bg-gray-800"
               value={guess}
               onChange={(e) => setGuess(e.target.value)}
             />
-            <div className="bg-gray-700 px-3 py-2 rounded text-sm font-semibold">
-              Left: {maxChances - guessCount}
+            <div className="bg-gray-700 text-white px-3 py-2 rounded text-sm font-semibold">
+              Chances : {maxChances - guessCount}
             </div>
           </div>
-          <button onClick={handleGuess} className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
-            Guess
-          </button>
+
+          <div className="flex justify-center gap-4 mt-2 mb-2">
+            <button
+              onClick={handleGuess}
+              className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              Guess
+            </button>
+
+            <button
+              onClick={resetGame}
+              className="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-700 transition"
+            >
+              Restart
+            </button>
+          </div>
         </>
       )}
 
