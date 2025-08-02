@@ -75,7 +75,12 @@ export default function Home() {
     setGuess("");
     setGuessCount(0);
     setMaxChances(chances);
-    setMessage(`Game started! Guess a number between ${minVal} and ${maxVal}. You have ${chances} chances.`);
+    setMessage(
+      `🔢 Guess a number between ${minVal} and ${maxVal}.\n🎯 You have ${chances} chances.`
+    );
+    setMessage(
+      `🔢 Guess between ${minVal} and ${maxVal}.\n🎯 You have ${chances} chances.`
+    );
     setRangeSet(true);
     sfxOn && startRef.current?.play();
     if (bgMusicOn && bgMusicRef.current) {
@@ -86,10 +91,8 @@ export default function Home() {
 
   const handleGuess = () => {
     sfxOn && clickRef.current?.play();
-
     if (!rangeSet) return;
 
-    // 🛑 NEW CHECK: No more chances
     if (guessCount >= maxChances) {
       setMessage("⚠️ No more chances left!");
       return;
@@ -162,7 +165,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4 relative animated-bg">
-      {/* Audio Elements */}
       <audio ref={bgMusicRef} src="/sounds/background.mp3" />
       <audio ref={clickRef} src="/sounds/click.mp3" />
       <audio ref={correctRef} src="/sounds/correct.mp3" />
@@ -170,7 +172,6 @@ export default function Home() {
       <audio ref={resetRef} src="/sounds/reset.mp3" />
       <audio ref={startRef} src="/sounds/start.mp3" />
 
-      {/* Stats Button */}
       <button
         onClick={() => setShowStatsMenu((prev) => !prev)}
         className="absolute top-4 right-4 text-3xl hover:text-yellow-400"
@@ -179,7 +180,6 @@ export default function Home() {
         ☰
       </button>
 
-      {/* Stats Menu */}
       {showStatsMenu && (
         <div className="absolute top-16 right-4 bg-gray-800 border border-gray-700 rounded p-4 w-64 shadow-lg z-50">
           <h3 className="text-xl font-bold mb-2">📊 Your Stats</h3>
@@ -205,15 +205,23 @@ export default function Home() {
         </div>
       )}
 
-      <h1 className="text-3xl font-bold mb-6 text-center">🎯 Number Guessing Game</h1>
+      {/* Game Title or Started Status */}
+      {!rangeSet ? (
+        <>
+          <h1 className="text-3xl font-bold mb-2 text-center">🎯 Number Guessing Game</h1>
+          <p className="text-center text-gray-300 max-w-xl mb-6">
+            🔢 Set a range, solve the logic — beat the number before chances vanish! ⚡
+          </p>
+        </>
+      ) : (
+        <h1 className="text-3xl font-bold mb-6 text-center">🎮 Game Started!</h1>
+      )}
 
-      {/* Min/Max Inputs */}
       <div className="flex gap-4 mb-2">
         <input type="number" placeholder="Min" className="text-white p-2 rounded bg-gray-800 w-24" value={min} onChange={(e) => setMin(e.target.value)} />
         <input type="number" placeholder="Max" className="text-white p-2 rounded bg-gray-800 w-24" value={max} onChange={(e) => setMax(e.target.value)} />
       </div>
 
-      {/* Start Game Button */}
       {!rangeSet && (
         <button
           onClick={startGame}
@@ -223,7 +231,6 @@ export default function Home() {
         </button>
       )}
 
-      {/* Guess Input Section */}
       {rangeSet && (
         <>
           <div className="flex items-center gap-4 mb-2">
